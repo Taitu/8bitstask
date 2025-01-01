@@ -1,18 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import Market from '@/pages/Market.vue'
-import Detail from '@/pages/Detail.vue'
-
 const routes = [
   {
     path: '/',
     name: 'Market',
-    component: Market,
+    component: () => import('@/pages/Market.vue')
   },
   {
     path: '/detail/:code',
     name: 'Detail',
-    component: Detail,
+    component: () => import('@/pages/Detail.vue'),
     props: true
   },
   {

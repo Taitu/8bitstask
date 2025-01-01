@@ -7,7 +7,7 @@
       </div>
       <div v-if="!currenciesStore.error" class="filter__item filter__currency">
         <Loader v-if="currenciesStore.loading" />
-        <select class="filter__control" v-model="currencyCode">
+        <select class="filter__control" v-model="currencyCode" aria-label="Currency">
           <option :value="null">
             Select currency
           </option>
@@ -148,7 +148,7 @@ const filteredMarkets = computed(() => {
   &__change {
     font-size: 12px;
     &__amount {
-      color: #5f6873;
+      color: #1b1c1c;
     }
     &--up {
       .market-list__change__percentage {
@@ -157,7 +157,7 @@ const filteredMarkets = computed(() => {
     }
     &--down {
       .market-list__change__percentage {
-        color: #ff3d00;
+        color: #c13003;
       }
     }
   }
