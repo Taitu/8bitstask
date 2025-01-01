@@ -2,28 +2,31 @@
   <div class="markets-page">
     <div class="filter">
       <div class="filter__item">
-        <input class="filter__control filter__control--input" v-model.trim="query" placeholder="Type to search for tokens..." />
-        <span v-if="query.length > 0" class="filter__item__close" @click="query = ''">&#10005;</span>
+        <input :value="query" @input="e => changeQuery(e.target.value)" class="filter__control filter__control--input" placeholder="Type to search for tokens..." />
+        <span v-if="query.length > 0" class="filter__item__close" @click="changeQuery('')">&#10005;</span>
       </div>
       <div v-if="!currenciesStore.error" class="filter__item filter__currency">
         <Loader v-if="currenciesStore.loading" />
-        <select class="filter__control" v-model="currencyCode" aria-label="Currency">
-          <option :value="null">
-            Select currency
+        <select :value="currencyCode" @change="e => selectCurrency(e.target.value)" class="filter__control" aria-label="Currency">
+          <option value="all">
+            All currencies
           </option>
           <option v-for="currency in currenciesStore.currencies" :key="currency.code" :value="currency.code">
             {{ currency.code }}
           </option>
         </select>
       </div>
+      <div class="filter__item filter__item--sorting">
+        <select class="filter__control" :value="sortKey" aria-label="Currency" @change="e => sortBy(e.target.value)">
+          <option v-for="item in marketsTableHeadMobile" :key="item.key" :value="item.key">
+            {{ item.text }}
+          </option>
+        </select>
+      </div>
     </div>
     <div class="market-list">
       <div class="market-list__row market-list__head">
-        <div class="market-list__cell">Coin</div>
-        <div class="market-list__cell">Price</div>
-        <div class="market-list__cell">Best Offer</div>
-        <div class="market-list__cell">24h Change</div>
-        <div class="market-list__cell">Volume</div>
+        <MarketTableHead :sortKey="sortKey" :sortDirection="sortDirection" :sortBy="sortBy" />
       </div>
       <div v-if="markets" class="market-list__items">
         <div v-if="filteredMarkets.length === 0" class="market-list__empty">
@@ -38,17 +41,37 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { createPollingGenerator } from '@/utils/polling'
 import { useCurrenciesStore } from '@/stores/currencies'
 import MarketItem from '@/components/markets/MarketItem.vue'
 import Loader from '@/components/misc/Loader.vue'
+import MarketTableHead from '@/components/markets/MarketTableHead.vue'
+
+const route = useRoute()
+const router = useRouter()
 
 const currenciesStore = useCurrenciesStore()
 
 const markets = ref(null)
-const currencyCode = ref(null)
-const query = ref('')
+const currencyCode = ref(route.query.currencyCode || 'all')
+const query = ref(route.query.query || '')
 const error = ref(null)
+const sortKey = ref(route.query.sortKey || 'price')
+const sortDirection = ref(route.query.sortDirection || 'asc')
+
+const marketsTableHeadMobile = [
+  {key: 'coin', text: 'Coin (A to Z)'},
+  {key: 'coin', text: 'Coin (Z to A)'},
+  {key: 'price', text: 'Price (High to Low)'},
+  {key: 'price', text: 'Price (Low to High)'},
+  {key: 'offer', text: 'Best Offer (High to Low)'},
+  {key: 'offer', text: 'Best Offer (Low to High)'},
+  {key: 'change', text: '24h Change (High to Low)'},
+  {key: 'change', text: '24h Change (Low to High)'},
+  {key: 'volume', text: 'Volume (High to Low)'},
+  {key: 'volume', text: 'Volume (Low to High)'},
+]
 
 const pollingInterval = import.meta.env.VITE_POLLING_INTERVAL
 let pollingAbortController
@@ -79,6 +102,42 @@ const stopPolling = () => {
   }
 }
 
+const sortBy = (key) => {
+  if (sortKey.value.includes(key)) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortDirection.value = 'asc'
+  }
+  updateQuery({
+    sortKey: sortKey.value,
+    sortDirection: sortDirection.value
+  })
+}
+
+const changeQuery = (_query) => {
+  query.value = _query
+  updateQuery({
+    query: _query
+  })
+}
+
+const selectCurrency = (_currency) => {
+  currencyCode.value = _currency
+  updateQuery({
+    currencyCode: _currency
+  })
+}
+
+const updateQuery = (_query) => {
+  router.push({
+    query: {
+      ...route.query,
+      ..._query
+    }
+  })
+}
+
 onMounted(() => {
   startPolling()
 })
@@ -88,15 +147,30 @@ onUnmounted(() => {
 })
 
 const filteredMarkets = computed(() => {
-  return markets.value.filter(market => {
+  const filtered = markets.value.filter(market => {
     const matchesQuery = query.value.length <= market.pair.primary.length ?
     market.pair.primary.toLowerCase().includes(query.value.toLowerCase()) || market.pair.secondary.toLowerCase().includes(query.value.toLowerCase()) :
     query.value.toLowerCase().includes(market.pair.primary.toLowerCase()) || query.value.toLowerCase().includes(market.pair.secondary.toLowerCase())
 
-    const matchesCurrency = !currencyCode.value || market.pair.primary === currencyCode.value || market.pair.secondary === currencyCode.value
+    const matchesCurrency = currencyCode.value == 'all' || market.pair.primary === currencyCode.value || market.pair.secondary === currencyCode.value
 
     return matchesQuery && matchesCurrency
   })
+
+  const order = sortDirection.value === 'asc' ? 1 : -1
+
+  switch(sortKey.value) {
+    case 'coin':
+      return filtered.sort((a, b) => (a.pair.primary.localeCompare(b.pair.primary)) * order)
+    case 'offer':
+      return filtered.sort((a, b) => (b.price.bestOffer - a.price.bestOffer) * order)
+    case 'change':
+      return filtered.sort((a, b) => ((b.price.change.percent * (b.price.change.direction === 'Down' ? -1 : 1)) - (a.price.change.percent * (a.price.change.direction === 'Down' ? -1 : 1))) * order)
+    case 'volume':
+      return filtered.sort((a, b) => (b.volume.primary - a.volume.primary) * order)
+    default:
+      return filtered.sort((a, b) => (b.price.last - a.price.last) * order)
+  }
 })
 </script>
 
@@ -137,6 +211,7 @@ const filteredMarkets = computed(() => {
     }
     .market-list__cell {
       font-weight: bold;
+      cursor: pointer;
     }
   }
   &__cell {
@@ -166,7 +241,7 @@ const filteredMarkets = computed(() => {
   margin-bottom: 20px;
   display: flex;
   justify-content: flex-end;
-  @media all and (max-width: 480px) {
+  @media all and (max-width: 640px) {
     flex-direction: column;
   }
   &__control {
@@ -176,7 +251,7 @@ const filteredMarkets = computed(() => {
     border-radius: 6px;
     padding: 0 10px;
     margin-left: 20px;
-    @media all and (max-width: 480px) {
+    @media all and (max-width: 640px) {
       width: 100%;
       margin-left: 0;
       margin-bottom: 10px;
@@ -194,6 +269,11 @@ const filteredMarkets = computed(() => {
   }
   &__item {
     position: relative;
+    &--sorting {
+      @media all and (min-width: 768px) {
+        display: none;
+      }
+    }
     &__close {
       cursor: pointer;
       color: $gray-color;

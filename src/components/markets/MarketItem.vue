@@ -14,9 +14,9 @@
       <span class="market-list__cell__label">Best offer: </span>
       ${{ market.price.bestOffer}}
     </div>
-    <div v-if="market.price.direction === 'Down'" class="market-list__cell market-list__change market-list__change--down">
+    <div v-if="market.price.change.direction === 'Down'" class="market-list__cell market-list__change market-list__change--down">
       <span class="market-list__cell__label">24h Change: </span>
-      <span class="market-list__change__percentage">-{{ market.price.change.percent }}%</span>
+      <span class="market-list__change__percentage">-{{ market.price.change.percent }}%&nbsp;</span>
       <span class="market-list__change__amount">{{ market.price.change.amount }}</span>
     </div>
     <div v-else class="market-list__cell market-list__change market-list__change--up">
@@ -26,7 +26,7 @@
     </div>
     <div class="market-list__cell">
       <span class="market-list__cell__label">Volume: </span>
-      ${{ market.volume.secondary }}
+      ${{ market.volume.primary }}
     </div>
   </div>
 </template>

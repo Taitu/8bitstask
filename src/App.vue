@@ -17,7 +17,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .main {
-  max-width: 640px;
+  max-width: 720px;
   margin: 50px auto;
   padding: 0 15px;
 }
