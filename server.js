@@ -8,11 +8,21 @@ dotenv.config()
 const app = express()
 const PORT = process.env.EXPRESS_PORT || 5001
 
-app.use(cors())
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || origin.startsWith(`http://${process.env.SERVER_HOST}`)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+
+app.use(cors(corsOptions))
 
 app.get('/api/market', async (req, res) => {
   try {
-    const response = await fetch('https://user26614.requestly.tech/test/api/market')
+    const response = await fetch(`${process.env.EXTERNAL_API_URL}/api/market`)
     const data = await response.json()
     res.json(data)
   } catch (error) {
@@ -23,7 +33,7 @@ app.get('/api/market', async (req, res) => {
 
 app.get('/api/currencies', async (req, res) => {
   try {
-    const response = await fetch('https://user26614.requestly.tech/test/api/currency')
+    const response = await fetch(`${process.env.EXTERNAL_API_URL}/api/currency`)
     const data = await response.json()
     res.json(data)
   } catch (error) {
@@ -33,5 +43,5 @@ app.get('/api/currencies', async (req, res) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`Running on http://localhost:${PORT}`)
+  console.log(`Running on http://${process.env.SERVER_HOST}:${PORT}`)
 });

@@ -15,7 +15,6 @@ export const useCurrenciesStore = defineStore('currencies', {
         this.currencies = data
         this.error = null
       } catch (error) {
-        console.error('fetching currencies error:', error)
         this.error = 'Something happened. Please try it later...'
       } finally {
         this.loading = false
