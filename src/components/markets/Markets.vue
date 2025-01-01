@@ -115,7 +115,7 @@ const filteredMarkets = computed(() => {
   &__empty {
     text-align: center;
     padding-top: 20px;
-    color: #5f6873;
+    color: $gray-color;
     font-weight: bold;
   }
   &__row {
@@ -148,7 +148,7 @@ const filteredMarkets = computed(() => {
   &__change {
     font-size: 12px;
     &__amount {
-      color: #1b1c1c;
+      color: $gray-color;
     }
     &--up {
       .market-list__change__percentage {
@@ -157,7 +157,7 @@ const filteredMarkets = computed(() => {
     }
     &--down {
       .market-list__change__percentage {
-        color: #c13003;
+        color: $red-color;
       }
     }
   }
@@ -196,7 +196,7 @@ const filteredMarkets = computed(() => {
     position: relative;
     &__close {
       cursor: pointer;
-      color: #5f6873;
+      color: $gray-color;
       font-weight: bold;
       font-size: 12px;
       position: absolute;
