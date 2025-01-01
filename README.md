@@ -1,5 +1,41 @@
-# Vue 3 + Vite
+# Senior Vue 3 Developer Test
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## Project: Crypto Market Summary
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+```
+cp .env.example .env
+```
+
+
+Because provided api endpoints served via https you can either create express
+server as proxy to fetch from insecure http localhost or fetch directly from api
+endpoint
+
+**VITE_API_URL** for api endpoint;
+
+**VITE_POLLING_INTERVAL** to set polling interval
+
+Variables to set express server:
+
+**EXPRESS_PORT** port on which will run express server
+
+**SERVER_HOST** host of server (localhost)
+
+**EXTERN_API_URL** external api endpoint to fetch market and currencies data
+
+To start vue app instance run command:
+
+```
+npm run dev
+```
+
+To start express server instance run command:
+```
+npm run server
+```
+
+Optionally you can start concurrently vue app + express server
+```
+npm run start
+```
+
