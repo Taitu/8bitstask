@@ -1,6 +1,11 @@
 <template>
   <div class="markets-page">
     <div class="filter">
+      <div v-if="currencyCode !== 'all' || query || sortKey !== 'price' || sortDirection !== 'asc'"
+        class="filter__clear-all"
+        @click="clearFilter">
+        Reset search &#10005;
+      </div>
       <div class="filter__item">
         <input :value="query" @input="e => changeQuery(e.target.value)" class="filter__control filter__control--input" placeholder="Type to search for tokens..." />
         <span v-if="query.length > 0" class="filter__item__close" @click="changeQuery('')">&#10005;</span>
@@ -54,9 +59,9 @@ const router = useRouter()
 const currenciesStore = useCurrenciesStore()
 
 const markets = ref(null)
+const error = ref(null)
 const currencyCode = ref(route.query.currencyCode || 'all')
 const query = ref(route.query.query || '')
-const error = ref(null)
 const sortKey = ref(route.query.sortKey || 'price')
 const sortDirection = ref(route.query.sortDirection || 'asc')
 
@@ -127,6 +132,14 @@ const selectCurrency = (_currency) => {
   updateQuery({
     currencyCode: _currency
   })
+}
+
+const clearFilter = () => {
+  currencyCode.value = 'all'
+  query.value = ''
+  sortKey.value = 'price'
+  sortDirection.value = 'asc'
+  router.push('/')
 }
 
 const updateQuery = (_query) => {
@@ -241,8 +254,19 @@ const filteredMarkets = computed(() => {
   margin-bottom: 20px;
   display: flex;
   justify-content: flex-end;
+  position: relative;
   @media all and (max-width: 640px) {
     flex-direction: column;
+  }
+
+  &__clear-all {
+    cursor: pointer;
+    position: absolute;
+    right: 0;
+    top: -25px;
+    color: $gray-color;
+    font-size: 12px;
+    text-decoration: underline;
   }
   &__control {
     font-size: 13px;
